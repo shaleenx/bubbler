@@ -1,2 +1,2 @@
-# OMR-test-grader
-Computer vision system to grade OMR answer sheets a.k.a. bubble sheets
+# bubbler
+Computer vision system to grade bubble sheets a.k.a. OMR answer sheets 
