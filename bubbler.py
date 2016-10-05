@@ -28,13 +28,14 @@ def order_points(pts):
 
 def four_point_transform(image, pts):
     # obtain a consistent order of the points and unpack them individually
+    rect = order_points(pts)
     (tl, tr, br, bl) = order_points(pts)
 
     # compute the width of the new image, which will be the maximum distance between
     # bottom-right and bottom-left x-coordinates or the top-right and top-left x-coordinates
     widthA = np.sqrt(((br[0] - bl[0])**2) + ((br[1] - bl[1])**2))
     widthB = np.sqrt(((tr[0] - tl[0])**2) + ((tr[1] - tl[1])**2))
-    maxwidth = max(int(widthA), int(widthB))
+    maxWidth = max(int(widthA), int(widthB))
 
     # compute the height of the new image, which will be the maximum distance between the
     # top-right and bottom-right y-coordinates or the top-left and bottom-left y-coordinates
@@ -45,10 +46,10 @@ def four_point_transform(image, pts):
     # now that we have the dimensions of the new image, construct the set of destination points
     # to obrain a birds eye view (top-down view) of the image, again specifying points in the
     # top-left, top-right, bottom-right, and bottom-left order
-    dst = np.array([ [0,0], [maxWidth-1,0], [maxWidth-1,maxHeight-1], [0, maxHeight-1]], dtype='float32'])
+    dst = np.array([ [0,0], [maxWidth-1,0], [maxWidth-1,maxHeight-1], [0, maxHeight-1]], dtype='float32')
 
     # compute the perspective transform matrix and then apply it
-    M = cv2.getPerspectiveTransofrm(rect, dst)
+    M = cv2.getPerspectiveTransform(rect, dst)
     warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
     return warped
@@ -65,9 +66,10 @@ ANSWER_KEY = {0:1, 1:2, 2:3, 3:4, 4:1}
 
 # image pre-processing
 image = cv2.imread(args['image'])   # load the image
+print(args['image'])
 im_grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   # convert it to grayscale
-im_blurred = cv2.GaussianBlur(gray, (5, 5), 0)  # blur it slightly to reduce high frequency noise
-im_edged = cv2.Canny(blurred, 75, 200)  # find edges
+im_blurred = cv2.GaussianBlur(im_grayscale, (5, 5), 0)  # blur it slightly to reduce high frequency noise
+im_edged = cv2.Canny(im_blurred, 75, 200)  # find edges
 
 # find contours in the edge map and initialize the contour
 # that corresponds to the document
@@ -84,7 +86,7 @@ if len(cnts) > 0:
     for c in cnts:
         # approximate the contour
         peri = cv2.arcLength(c, True)
-        approx = cv2.roxPolyDP(c, 0.02*peri, True)
+        approx = cv2.approxPolyDP(c, 0.02*peri, True)
 
         # if our approximated contour has four points,
         # then we can assume we have found the paper
@@ -115,7 +117,7 @@ for c in cnts:
 
     # in order to label the contour as a question, region should be sufficiently wide,
     # and sufficiently tall, and have an aspect ratio of almost 1
-    if w>=20 and h>=20 and ar>=0.9 and ar<1.1:
+    if w>=20 and h>=20 and ar>=0.9 and ar<=1.1:
         questionCnts.append(c)
 
 # sort the question contours top-to-bottom, then initialize the total number of correct answers
