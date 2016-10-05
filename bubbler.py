@@ -96,4 +96,24 @@ if len(contours) > 0:
 paper = four_point_transform(image, docCnt.reshape(4,2))
 warped = four_point_transform(im_grayscale, docCnt.reshape(4,2))
 
+# apply Otsu's thresholding method to binarize the warped piece of paper
+thresh = cv2.threshold(warped, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+
+# find contours in the thresholded image, then initialize the list of contours that
+# correspond to questions
+contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+contours = contours[0] if imutils.is_cv2() else contours[1]
+questionCnts = []
+
+# loop over the contours
+for c in contours:
+    # compute the bounding box of the contour, then use the bounding box
+    # to derive the aspect ratio
+    (x, y, w, h) = cv2.boundingRect(c)
+    ar = w/float(h)
+
+    # in order to label the contour as a question, region should be sufficiently wide,
+    # and sufficiently tall, and have an aspect ratio of almost 1
+    if w>=20 and h>=20 and ar>=0.9 and ar<1.1:
+        questionCnts.append(c)
 
