@@ -67,7 +67,6 @@ ANSWER_KEY = {0:1, 1:2, 2:3, 3:4, 4:1}
 
 # image pre-processing
 image = cv2.imread(args['image'])   # load the image
-print(args['image'])
 im_grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   # convert it to grayscale
 im_blurred = cv2.GaussianBlur(im_grayscale, (5, 5), 0)  # blur it slightly to reduce high frequency noise
 im_edged = cv2.Canny(im_blurred, 75, 200)  # find edges
@@ -106,13 +105,9 @@ thresh = cv2.threshold(warped, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[
 # find contours in the thresholded image, then initialize the list of contours that
 # correspond to questions
 cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-print(len(cnts))
-print(len(cnts[1]))
-print(len(cnts[0]))
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 questionCnts = []
 
-print(len(cnts))
 # loop over the contours
 for c in cnts:
     # compute the bounding box of the contour, then use the bounding box
@@ -164,6 +159,7 @@ for (q, i) in enumerate(np.arange(0, len(questionCnts), 5)):
     # draw the outline of the correct answer on the test
     cv2.drawContours(paper, [cnts[k]], -1, color, 3)
 
+print("No. of Correct Answers:", correct)
 # scoring the exam and displaying the results to the screen
 score = (correct/5.0)*100
 print("Score: {:.2f}%".format(score))
