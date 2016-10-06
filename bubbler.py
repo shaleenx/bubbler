@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import argparse
 from imutils import contours
+from imutils.perspective import four_point_transform
 import imutils
 
 def order_points(pts):
@@ -26,7 +27,7 @@ def order_points(pts):
 
     return rect # the ordered coordinates
 
-def four_point_transform(image, pts):
+def four_point_transform_my(image, pts):
     # obtain a consistent order of the points and unpack them individually
     rect = order_points(pts)
     (tl, tr, br, bl) = order_points(pts)
@@ -105,9 +106,13 @@ thresh = cv2.threshold(warped, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[
 # find contours in the thresholded image, then initialize the list of contours that
 # correspond to questions
 cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+print(len(cnts))
+print(len(cnts[1]))
+print(len(cnts[0]))
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 questionCnts = []
 
+print(len(cnts))
 # loop over the contours
 for c in cnts:
     # compute the bounding box of the contour, then use the bounding box
@@ -125,7 +130,7 @@ questionCnts = contours.sort_contours(questionCnts, method="top-to-bottom")[0]
 correct = 0
 
 # each question has 5 possible answers, to loop over the question in batches of 5
-for (q, i) in enumerate(np.arrange(0, len(questionCnts), 5)):
+for (q, i) in enumerate(np.arange(0, len(questionCnts), 5)):
     # sort the contours for the current question from left to right, then
     # initialize the index of the bubbled answer
     cnts = contours.sort_contours(questionCnts[i:i+5])[0]
